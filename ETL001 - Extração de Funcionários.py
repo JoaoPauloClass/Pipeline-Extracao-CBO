@@ -2,8 +2,12 @@ import pandas as pd
 import sqlalchemy as sqla
 import time
 
+engine = sqla.create_engine(
+    "postgresql+psycopg2://root:root@localhost:5432/Pipeline_TCC"
+)
+
 start_extraction_time = time.perf_counter()
-df = pd.read_csv("cnes_PR_2601.csv", sep=';')
+df = pd.read_csv("cnes_PR_2601.csv", sep=';', encoding='cp1252')
 end_extraction_time = time.perf_counter()
 elapsed_extraction_time = end_extraction_time - start_extraction_time
 
@@ -24,8 +28,15 @@ df = df[["CBO", "CBOUNICO", "NOMEPROF", "CNS_PROF", "CONSELHO", "REGISTRO"]]
 # df['CNPJ'] = df['CNPJ'].astype(str) #Formatar Cnpj?
 # df['CNPJ'] = df['CNPJ'].str[:-2]
 # df["CNPJ"] = df["CNPJ"].fillna("(N/D)")
-
-
+df.to_sql(
+    name="CBO",
+    con=engine,
+    schema="Stage",
+    if_exists="replace",
+    index=False,
+    method="multi",
+    chunksize=5000
+)
 # print(df.isnull().sum())
 # CBO             0
 # CBOUNICO    95479
@@ -33,11 +44,11 @@ df = df[["CBO", "CBOUNICO", "NOMEPROF", "CNS_PROF", "CONSELHO", "REGISTRO"]]
 # CNS_PROF        0
 # CONSELHO    86289
 # REGISTRO    85936 
-
-df["CBOUNICO"] = df["CBOUNICO"].fillna("(N/D)")
-df["CONSELHO"] = df["CONSELHO"].fillna("(N/D)")
-df["REGISTRO"] = df["REGISTRO"].fillna("(N/D)")
-print(df.isna().sum()) 
+# 
+# df["CBOUNICO"] = df["CBOUNICO"].fillna("(N/D)")
+# df["CONSELHO"] = df["CONSELHO"].fillna("(N/D)")
+# df["REGISTRO"] = df["REGISTRO"].fillna("(N/D)")
+# print(df.isna().sum()) 
 # CBO             0
 # CBOUNICO    95479
 # NOMEPROF        0
